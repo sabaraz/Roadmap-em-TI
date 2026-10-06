@@ -275,8 +275,7 @@
         s('path', { class: 'forma', d: this.formas.curso, fill: '#05070d', stroke: COR_CENTRO, 'stroke-width': 2.5 })];
       if (t === 'eixo') return [s('path', { class: 'forma', d: this.formas.eixo, fill: n.cor, stroke: 'rgba(255,255,255,.55)', 'stroke-width': 2 })];
       if (t === 'agrupamento') return [
-        s('path', { class: 'forma', d: this.formas.agrupamento, fill: FUNDO, stroke: n.cor, 'stroke-width': 3 }),
-        s('circle', { r: 4.5, fill: n.cor })];
+        s('path', { class: 'forma', d: this.formas.agrupamento, fill: FUNDO, stroke: n.cor, 'stroke-width': 3 })];
       if (t === 'disciplina') {
         const sol = n.natureza === 'obrigatoria';
         const out = [s('circle', { class: 'forma', r: 7.5, fill: sol ? n.cor : FUNDO, stroke: n.cor, 'stroke-width': 2.2 })];
@@ -396,7 +395,7 @@
           this.etq(m.cargaObrigatorias.toLocaleString('pt-BR') + ' h obrigatórias'),
           this.etq(m.cargaOptativas + ' h optativas'), this.etq(m.cargaComponentes + ' h de componentes')),
         ...this.sec('Seis eixos de formação', this.lista(D.eixos.map(e =>
-          h('span', null, h('i', { style: 'display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:' + EIXO_COR[e.id] }), this.link(e.rotulo + ' · ' + e.percentualCarga + '%', () => this.ctl.abrirEixo(e.id)))))),
+          h('span', null, h('i', { style: 'display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:' + EIXO_COR[e.id] }), this.link(e.rotulo + ' · ' + e.percentualCarga + '%', () => this.ctl.abrirEixo(e.id, true)))))),
         h('p', null, 'Percentuais sobre a carga horária total do curso.')];
     }
     c_eixo(c) {
@@ -404,21 +403,21 @@
       return [h('div', { class: 'tipo' }, 'Eixo de formação'), h('h2', null, e.rotulo), h('p', null, e.descricao),
         h('div', { class: 'etiquetas' }, this.etq(e.percentualCarga + '% da carga horária total', '', EIXO_COR[e.id])),
         ...this.sec('Agrupamentos deste eixo', this.lista(this.map.gruposDoEixo[e.id].map(g =>
-          this.link(g.rotulo, () => this.ctl.abrirGrupo(g.id)))))];
+          this.link(g.rotulo, () => this.ctl.abrirGrupo(g.id, true)))))];
     }
     c_agrupamento(c) {
       const g = this.map.grupos[c.ref], D_ = D.disciplinas;
       const out = [h('div', { class: 'tipo' }, 'Agrupamento · eixo ' + this.nomeEixo(g.eixo)), h('h2', null, g.rotulo), h('p', null, g.descricao),
-        h('p', { class: 'aviso-cartao', style: 'border:0;margin:0;padding:0' }, 'Agrupamento organizado para este mapa a partir das disciplinas do curso (descrição editorial).')];
+        h('p', { class: 'aviso-cartao', style: 'border:0;margin:0;padding:0' }, 'Descrição escrita para este mapa, a partir das disciplinas do curso.')];
       if (g.disciplinas.length) out.push(...this.sec('Disciplinas', this.lista(g.disciplinas.map(x => {
         const d = D_[x.ref];
         return h('span', null, this.link(d.rotulo, () => this.ctl.abrirNa(g.id, x.ref, 'disciplina')),
           ' ', h('small', null, d.natureza === 'optativa' ? '(optativa)' : '(' + d.periodo + 'º per.)'),
-          x.papel === 'relacionada' ? h('small', null, ' · relacionada') : null);
+          x.papel === 'relacionada' ? h('small', null, ' · vem de outra área') : null);
       }))));
       if (g.carreiras.length) out.push(...this.sec('Carreiras possíveis', this.lista(g.carreiras.map(cid =>
         this.link(D.carreiras[cid].rotulo, () => this.ctl.abrirNa(g.id, cid, 'carreira'))))));
-      if (g.componentes) out.push(...this.sec('Componentes curriculares', this.lista(g.componentes.map(k =>
+      if (g.componentes) out.push(...this.sec('Outras partes do curso', this.lista(g.componentes.map(k =>
         this.link(D.componentes[k].rotulo + ' · ' + D.componentes[k].cargaHoraria + ' h', () => this.ctl.abrirNa(g.id, k, 'componente'))))));
       return out;
     }
@@ -450,20 +449,21 @@
       if (rel.length) out.push(...this.sec('Carreiras que usam esta disciplina', h('ul', null,
         rel.slice().sort((a, b) => (a.rel.forca !== 'principal') - (b.rel.forca !== 'principal')).map(r => {
           const car = D.carreiras[r.carreira];
-          return h('li', { class: 'lig' }, h('span', { class: 'pe ' + (r.rel.forca === 'principal' ? 'p' : '') }, r.rel.forca === 'principal' ? 'P' : 'A'),
+          return h('li', { class: 'lig' }, h('span', { class: 'pe ' + (r.rel.forca === 'principal' ? 'p' : '') }, r.rel.forca === 'principal' ? 'Base' : 'Complementa'),
             this.link(car.rotulo, () => this.ctl.revelarCarreira(car.id)), h('span', { class: 'porque' }, r.rel.porque));
         }))));
+      if (rel.length) out.push(h('p', null, h('small', null, 'Base: esta disciplina é o fundamento da carreira. Complementa: ajuda, mas não é o centro dela.')));
       const gs = m.gruposDeDisc[d.id] || [];
       if (gs.length) out.push(...this.rotasDe(gs, d.id, 'disciplina'));
-      if (d.ementa) out.push(h('details', null, h('summary', null, 'Ementa'), h('p', null, d.ementa)));
+      if (d.ementa) out.push(h('details', null, h('summary', null, 'Conteúdo da disciplina (ementa)'), h('p', null, d.ementa)));
       else if (d.ementaNota) out.push(h('p', null, h('small', null, d.ementaNota)));
       return out;
     }
     c_carreira(c) {
       const car = D.carreiras[c.ref], m = this.map;
-      const status = car.ppcStatus === 'citado' ? this.etq('Citada no projeto do curso', 'citada')
-        : car.ppcStatus === 'variante' ? this.etq('Variante de função citada', 'citada')
-          : this.etq(car.cobertura === 'parcial' ? 'Deduzida das ementas · cobertura parcial' : 'Deduzida das ementas', car.cobertura === 'parcial' ? 'parcial' : '');
+      const status = car.ppcStatus === 'citado' ? this.etq('Profissão indicada pelo curso', 'citada')
+        : car.ppcStatus === 'variante' ? this.etq('Variação de uma profissão indicada pelo curso', 'citada')
+          : this.etq(car.cobertura === 'parcial' ? 'Deduzida do conteúdo das disciplinas · o curso cobre só parte dela' : 'Deduzida do conteúdo das disciplinas', car.cobertura === 'parcial' ? 'parcial' : '');
       const out = [h('div', { class: 'tipo' }, 'Carreira'), h('h2', null, car.rotulo), h('div', { class: 'etiquetas' }, status),
         h('p', null, car.descricao)];
       if (car.atividades.length) out.push(...this.sec('O que a profissão faz', this.lista(car.atividades)));
@@ -471,31 +471,31 @@
       if (car.relacaoCurso.length) out.push(...this.sec('Disciplinas do curso relacionadas', h('ul', null,
         car.relacaoCurso.slice().sort((a, b) => (a.forca !== 'principal') - (b.forca !== 'principal')).map(r => {
           const d = D.disciplinas[r.disciplina];
-          return h('li', { class: 'lig' }, h('span', { class: 'pe ' + (r.forca === 'principal' ? 'p' : '') }, r.forca === 'principal' ? 'P' : 'A'),
+          return h('li', { class: 'lig' }, h('span', { class: 'pe ' + (r.forca === 'principal' ? 'p' : '') }, r.forca === 'principal' ? 'Base' : 'Complementa'),
             this.link(d.rotulo, () => this.ctl.revelarDisciplina(d.id)),
             h('small', null, d.natureza === 'optativa' ? ' (optativa)' : ' (' + d.periodo + 'º per.)'),
             h('span', { class: 'porque' }, r.porque), r.trecho ? h('span', { class: 'trecho' }, '“' + r.trecho + '”') : null);
-        })), h('p', null, h('small', null, 'P = principal, A = apoio. O trecho é literal da ementa da disciplina.'))));
+        })), h('p', null, h('small', null, 'Base: o conteúdo da disciplina é o fundamento da carreira. Complementa: ajuda, mas não é o centro dela. Os trechos em itálico foram copiados do conteúdo oficial da disciplina.'))));
       const gs = m.gruposDeCarreira[car.id] || [];
       if (gs.length) out.push(...this.rotasDe(gs, car.id, 'carreira'));
       if (car.fontesInfo.length) out.push(h('details', null, h('summary', null, 'Fontes das informações da profissão'),
         h('ul', null, car.fontesInfo.map(f => h('li', null, h('a', { href: f.url, target: '_blank', rel: 'noopener noreferrer' }, f.rotulo)))),
-        h('p', null, 'Textos parafraseados das fontes; a relação com as disciplinas vem das ementas do curso.')));
-      else out.push(h('p', null, h('small', null, 'Sem fonte externa: esta carreira se apoia apenas nas ementas das disciplinas do curso.')));
+        h('p', null, 'Textos parafraseados das fontes; a relação com as disciplinas vem do conteúdo delas.')));
+      else out.push(h('p', null, h('small', null, 'Sem fonte externa: esta carreira foi ligada ao curso apenas pelo conteúdo das disciplinas.')));
       return out;
     }
     c_componente(c) {
       const k = D.componentes[c.ref];
-      return [h('div', { class: 'tipo' }, 'Componente curricular'), h('h2', null, k.rotulo),
+      return [h('div', { class: 'tipo' }, 'Parte do curso'), h('h2', null, k.rotulo),
         h('div', { class: 'etiquetas' }, this.etq(k.cargaHoraria + ' h')), h('p', null, k.descricao)];
     }
     c_cursoviz(c) {
       const v = D.cursosVizinhos[c.prefixo], lista = this.map.discDoCurso[c.prefixo] || [];
       return [h('div', { class: 'tipo' }, 'Outro curso do campus'), h('h2', null, v.nome), h('p', null, v.nota),
-        ...this.sec('Disciplinas do BSI em comum (' + lista.length + ')', this.lista(lista.map(x => {
+        ...this.sec('Disciplinas deste curso em comum (' + lista.length + ')', this.lista(lista.map(x => {
           const d = D.disciplinas[x.ref];
           return h('span', null, this.link(d.rotulo, () => this.ctl.revelarDisciplina(d.id)),
-            h('span', { class: 'porque', style: 'margin-left:0' }, 'Equivalente lá: ' + x.equivalente));
+            h('span', { class: 'porque', style: 'margin-left:0' }, 'Equivalente no outro curso: ' + x.equivalente));
         }))), h('p', null, 'Os agrupamentos que contêm essas disciplinas estão destacados no mapa, com a contagem.')];
     }
   }
@@ -712,20 +712,18 @@
     cliqueRaiz() {
       const st = this.st;
       if (!st.raiz) { st.raiz = true; st.sel = 'root'; this.setCartao({ tipo: 'curso' }); this.render(); this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 36)), 0.5, 1.1); }
-      else if (st.sel !== 'root') { st.sel = 'root'; this.setCartao({ tipo: 'curso' }); this.render(); }
       else this.inicio();
     }
+    visaoGeral() { this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 36)), 0.5, 1.1); }
     abrirEixo(id, forcar) {
       const st = this.st; st.raiz = true;
       if (!st.eixos.has(id) || forcar) {
         st.eixos.add(id); st.sel = id; this.setCartao({ tipo: 'eixo', ref: id }); this.render();
         const r = this.map.gruposDoEixo[id].map(g => this.layout.caixa(g.id, 26)); r.push(this.layout.caixa(id, 36));
         this.enquadrar(r, 0.45, 1.1);
-      } else if (st.sel !== id) { st.sel = id; this.setCartao({ tipo: 'eixo', ref: id }); this.render(); }
-      else {
+      } else {
         st.eixos.delete(id); if (st.grupo && this.map.grupos[st.grupo].eixo === id) st.grupo = null;
-        st.sel = null; this.setCartao(null); this.render();
-        this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 36)), 0.5, 1.1);
+        st.sel = null; this.setCartao(null); this.render(); this.visaoGeral();
       }
     }
     abrirGrupo(gid, forcar) {
@@ -733,8 +731,11 @@
       if (st.grupo !== gid || forcar) {
         st.grupo = gid; st.sel = gid; this.setCartao({ tipo: 'agrupamento', ref: gid }); this.render();
         this.enquadrar([this.layout.layoutGroup(gid).bbox], 0.45, 1.15);
-      } else if (st.sel !== gid) { st.sel = gid; this.setCartao({ tipo: 'agrupamento', ref: gid }); this.render(); }
-      else { st.grupo = null; st.sel = null; this.setCartao(null); this.render(); }
+      } else {
+        st.grupo = null; st.sel = null; this.setCartao(null); this.render();
+        const r = this.map.gruposDoEixo[g.eixo].map(x => this.layout.caixa(x.id, 26)); r.push(this.layout.caixa(g.eixo, 36));
+        this.enquadrar(r, 0.45, 1.1);
+      }
     }
     /* abre o agrupamento e seleciona um nó dele (disciplina, carreira, componente) */
     abrirNa(gid, ref, tipo) {
@@ -855,10 +856,10 @@
       box.append(h('h3', null, 'Como ler o mapa'),
         item(ico(s('circle', { r: 11, fill: '#8b5cf6' })), 'Disciplina obrigatória (tons da cor do eixo)'),
         item(ico(s('circle', { r: 9, fill: 'none', stroke: '#8b5cf6', 'stroke-width': 2.2 })), 'Disciplina optativa'),
-        item(ico(s('circle', { r: 7, fill: '#8b5cf6' }), s('circle', { r: 12, fill: 'none', stroke: '#8b5cf6', 'stroke-dasharray': '2.5 2.5' })), 'Aparece aqui como apoio (casa em outra rota)'),
-        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: COR_CARREIRA, 'stroke-width': 1.6 }))), 'Carreira citada no projeto do curso'),
-        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: '#ffa94d', 'stroke-dasharray': '3 3' }))), 'Carreira deduzida, cobertura parcial'),
-        item(ico(...estrela()), 'Carreira deduzida das ementas'),
+        item(ico(s('circle', { r: 7, fill: '#8b5cf6' }), s('circle', { r: 12, fill: 'none', stroke: '#8b5cf6', 'stroke-dasharray': '2.5 2.5' })), 'Disciplina de outra área que também ajuda aqui'),
+        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: COR_CARREIRA, 'stroke-width': 1.6 }))), 'Carreira indicada pelo curso'),
+        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: '#ffa94d', 'stroke-dasharray': '3 3' }))), 'Carreira deduzida; o curso cobre só parte dela'),
+        item(ico(...estrela()), 'Carreira deduzida do conteúdo das disciplinas'),
         h('p', null, 'Clique num círculo para abrir. Ao clicar numa carreira, todas as rotas que levam a ela se acendem; o número amarelo conta as disciplinas relacionadas.'),
         h('div', { class: 'cores' }, D.eixos.map(e => h('span', null, h('i', { style: 'background:' + EIXO_COR[e.id] }), e.rotulo))));
       btn.addEventListener('click', () => {

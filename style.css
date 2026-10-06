@@ -128,10 +128,10 @@ button { font: inherit; color: var(--texto); }
 #cartao li.lig { font-size: 13px; }
 .link { background: none; border: none; padding: 0; text-align: left; cursor: pointer; color: #cfe0ff; font-size: 13.5px; text-decoration: underline; text-decoration-color: rgba(207, 224, 255, .35); }
 .link:hover { color: #fff; text-decoration-color: #fff; }
-.pe { display: inline-block; min-width: 18px; text-align: center; font-size: 10.5px; padding: 0 5px; margin-right: 6px; border-radius: 6px; border: 1px solid var(--painel-borda); color: var(--texto-suave); }
+.pe { display: inline-block; min-width: 18px; white-space: nowrap; text-align: center; font-size: 10.5px; padding: 0 5px; margin-right: 6px; border-radius: 6px; border: 1px solid var(--painel-borda); color: var(--texto-suave); }
 .pe.p { border-color: #ffe9a8; color: #ffe9a8; }
-.porque { display: block; font-size: 12.5px; color: var(--texto-suave); margin: 2px 0 0 24px; }
-.trecho { display: block; font-size: 11.5px; color: #8e9bc6; font-style: italic; margin: 2px 0 0 24px; }
+.porque { display: block; font-size: 12.5px; color: var(--texto-suave); margin: 3px 0 0 0; }
+.trecho { display: block; font-size: 11.5px; color: #8e9bc6; font-style: italic; margin: 2px 0 0 0; }
 .linha-tempo { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin: 8px 0; }
 .linha-tempo span { text-align: center; font-size: 11px; padding: 5px 0; border-radius: 6px; border: 1px solid var(--painel-borda); color: var(--texto-suave); }
 .linha-tempo span.on { background: var(--destaque); color: #1b1b1b; border-color: var(--destaque); font-weight: 700; }
@@ -145,6 +145,11 @@ button { font: inherit; color: var(--texto); }
 .botao:hover { border-color: var(--destaque); }
 
 #aviso .curto { display: none; }
+@media (max-height: 520px) {
+  #aviso { bottom: 22px; font-size: 11px; max-width: 40vw; }
+  #aviso .longo { display: none; }
+  #aviso .curto { display: inline; }
+}
 @media (max-width: 760px) {
   #titulo span { display: none; }
   #cartao { top: auto; left: 8px; right: 8px; bottom: 58px; width: auto; max-width: none; max-height: 52vh; }

@@ -1525,7 +1525,7 @@ const PPC_DATA = {
    "compartilhadaCom": [],
    "ppcStatus": "citado",
    "ancora": "PPC, matriz curricular e ementário (OBBGSIN.033)",
-   "ementaNota": "A ementa desta disciplina não está detalhada no projeto pedagógico do curso; só constam os objetivos."
+   "ementaNota": "O conteúdo detalhado (ementa) desta disciplina não consta no documento oficial do curso; só os objetivos."
   },
   "d-079": {
    "id": "d-079",
@@ -3326,7 +3326,7 @@ const PPC_DATA = {
     {
      "disciplina": "d-023",
      "forca": "principal",
-     "porque": "Cliente e servidor na mesma ementa.",
+     "porque": "Cliente e servidor no mesmo conteúdo.",
      "trecho": "Desenvolvimento de lado-cliente"
     },
     {
@@ -4921,7 +4921,7 @@ const PPC_DATA = {
   },
   "OBBGEMT": {
    "nome": "Outro curso do campus",
-   "nota": "A disciplina Álgebra Linear I também é cursada em outro curso do campus, que o projeto pedagógico não nomeia."
+   "nota": "A disciplina Álgebra Linear I também é cursada em outro curso do campus, que o documento oficial do curso não identifica."
   }
  },
  "esperado": {
