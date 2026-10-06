@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa Digital de Carreiras — Sistemas de Informação, IFMG Ouro Branco</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <svg id="estrelas" aria-hidden="true"></svg>
+    <svg id="mapa" role="application" aria-label="Mapa digital de carreiras do Bacharelado em Sistemas de Informação" tabindex="-1"></svg>
+
+    <header id="topo">
+      <div id="titulo"><strong>Mapa Digital de Carreiras</strong><span>Bacharelado em Sistemas de Informação · IFMG Ouro Branco</span></div>
+      <div id="ferramentas">
+        <div id="busca-caixa">
+          <input id="busca" type="search" placeholder="Buscar disciplina ou carreira…" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="busca-lista" aria-label="Buscar disciplina ou carreira">
+          <ul id="busca-lista" role="listbox" hidden></ul>
+        </div>
+        <button id="btn-filtros" type="button" aria-expanded="false" aria-controls="filtros">Filtros</button>
+        <div id="filtros" hidden>
+          <label>Tipo de disciplina
+            <select id="f-natureza">
+              <option value="todas">Todas</option>
+              <option value="obrigatoria">Obrigatórias</option>
+              <option value="optativa">Optativas</option>
+            </select>
+          </label>
+          <label>Período
+            <select id="f-periodo">
+              <option value="">Todos</option>
+              <option value="1">1º período</option><option value="2">2º período</option>
+              <option value="3">3º período</option><option value="4">4º período</option>
+              <option value="5">5º período</option><option value="6">6º período</option>
+              <option value="7">7º período</option><option value="8">8º período</option>
+            </select>
+          </label>
+          <p class="nota">O filtro apenas destaca as disciplinas que combinam; o mapa não muda de lugar.</p>
+          <button id="f-limpar" type="button">Limpar filtros</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="chip-destaque" hidden></div>
+    <div id="dica">Clique no círculo central para começar</div>
+
+    <aside id="cartao" hidden aria-live="off"></aside>
+
+    <button id="btn-inicio" type="button" title="Voltar ao início (tecla Home)">⌂ Início</button>
+    <div id="zoom">
+      <button id="zoom-mais" type="button" aria-label="Aproximar">+</button>
+      <button id="zoom-menos" type="button" aria-label="Afastar">−</button>
+      <button id="btn-legenda" type="button" aria-label="Legenda" aria-expanded="false" aria-controls="legenda">?</button>
+    </div>
+    <div id="legenda" hidden></div>
+    <p id="aviso">Relações orientativas, organizadas a partir do PPC 2020 do curso; não são habilitações isoladas nem garantia de emprego.</p>
+    <div id="anuncio" class="so-leitor" aria-live="polite"></div>
+  </div>
+
+  <script src="ppc-data.js"></script>
+  <script src="mapa.js"></script>
+</body>
+</html>
