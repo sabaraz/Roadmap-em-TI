@@ -1,14 +1,12 @@
-/* ppc-data.js — dados do Mapa Digital BSI IFMG Ouro Branco (fase F1).
- * Fonte: PPC 2020 noturno. Texto de negócio vive só aqui; mapa.js não contém nomes de disciplina.
+/* ppc-data.js — dados do mapa de carreiras de Sistemas de Informação.
+ * Fonte: projeto pedagógico do curso, 2020 (noturno). Os textos vivem só aqui; mapa.js não contém nomes de disciplina.
  * Script clássico: define a constante global PPC_DATA. O bloco final permite validar em Node. */
 const PPC_DATA = {
  "meta": {
-  "versao": "F1",
-  "fonte": "PPC do Bacharelado em Sistemas de Informação, IFMG Campus Ouro Branco, 2020 (noturno)",
-  "aviso": "As relações entre disciplinas e carreiras são orientativas e organizadas a partir do PPC. Não são habilitações isoladas nem garantia de emprego, e o PPC não cria trilhas fechadas. Qualquer graduação pode seguir carreira empresarial ou autônoma; por isso o mapa só nomeia as funções que o PPC cita e as que as ementas sustentam.",
+  "fonte": "Projeto pedagógico do Bacharelado em Sistemas de Informação, 2020 (noturno)",
   "ligacoesDisciplinaCarreira": "derivado",
-  "comportamentoSelo": "O selo 'também cursada em ...' é clicável: abre as informações do curso vizinho (equivalente e nota do PPC) e destaca/leva o usuário às demais disciplinas do BSI compartilhadas com aquele curso.",
-  "informacaoExterna": "Atividades e habilidades das profissões vêm de fontes públicas (CBO e roadmap.sh) e foram parafraseadas; a relação com as disciplinas é derivada das ementas do PPC.",
+  "comportamentoSelo": "O selo 'também cursada em ...' é clicável: abre as informações do curso vizinho (equivalente e nota sobre o curso) e destaca/leva o usuário às demais disciplinas do BSI compartilhadas com aquele curso.",
+  "informacaoExterna": "Atividades e habilidades das profissões vêm de fontes públicas (classificação de ocupações, entidades e guias de carreira) e foram parafraseadas; a relação com as disciplinas é derivada das ementas das disciplinas.",
   "cargaHorariaTotal": 3004,
   "cargaObrigatorias": 2208,
   "cargaOptativas": 256,
@@ -17,7 +15,7 @@ const PPC_DATA = {
  "curso": {
   "id": "curso-bsi",
   "tipo": "curso",
-  "rotulo": "Sistemas de Informação — Bacharel",
+  "rotulo": "Jornada Sistemas de Informação",
   "descricao": "Bacharelado em Sistemas de Informação do IFMG, Campus Ouro Branco. Curso noturno, de 8 semestres e 3.004 horas, organizado em seis eixos de formação.",
   "ppcStatus": "citado",
   "ancora": "PPC 2020"
@@ -27,67 +25,67 @@ const PPC_DATA = {
    "id": "matematica",
    "tipo": "eixo",
    "ordem": 1,
-   "rotulo": "Formação Matemática",
+   "rotulo": "Matemática",
    "percentualCarga": 9,
    "descricao": "Base quantitativa para computação, dados e tomada de decisão.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   },
   {
    "id": "computacional",
    "tipo": "eixo",
    "ordem": 2,
-   "rotulo": "Formação Computacional",
+   "rotulo": "Computacional",
    "percentualCarga": 21,
    "descricao": "Fundamentos para construir soluções computacionais: programação, algoritmos e máquinas.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   },
   {
    "id": "ti",
    "tipo": "eixo",
    "ordem": 3,
-   "rotulo": "Formação em Tecnologia da Informação",
+   "rotulo": "Tecnologia da Informação",
    "percentualCarga": 28,
    "descricao": "Software, dados, redes e produtos digitais.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   },
   {
    "id": "administrativa",
    "tipo": "eixo",
    "ordem": 4,
-   "rotulo": "Formação Administrativa",
+   "rotulo": "Administrativa",
    "percentualCarga": 7,
    "descricao": "Tecnologia aplicada ao negócio e à organização.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   },
   {
    "id": "profissional-social",
    "tipo": "eixo",
    "ordem": 5,
-   "rotulo": "Formação Profissional e Social",
+   "rotulo": "Profissional e Social",
    "percentualCarga": 6,
    "descricao": "Pesquisa, ética e conclusão de curso: aplicação responsável do conhecimento.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   },
   {
    "id": "complementar",
    "tipo": "eixo",
    "ordem": 6,
-   "rotulo": "Formação Complementar",
+   "rotulo": "Complementar",
    "percentualCarga": 29,
    "descricao": "Idiomas, projeto integrador, atividades complementares e optativas: autonomia para direcionar o perfil.",
    "descricaoFonte": "editorial",
    "ppcStatus": "citado",
-   "ancora": "PPC §6.2 e Figura 2"
+   "ancora": "Projeto pedagógico do curso, §6.2"
   }
  ],
  "agrupamentos": [
@@ -1166,7 +1164,7 @@ const PPC_DATA = {
    "compartilhadaCom": [
     {
      "prefixo": "OBBGEMT",
-     "curso": "Não identificado na legenda do PPC",
+     "curso": "outro curso do campus",
      "equivalente": "Álgebra Linear I (OBBGEMT.076 – 2015.1 e OBBGEMT.143 – 2018.1)"
     }
    ],
@@ -1527,7 +1525,7 @@ const PPC_DATA = {
    "compartilhadaCom": [],
    "ppcStatus": "citado",
    "ancora": "PPC, matriz curricular e ementário (OBBGSIN.033)",
-   "ementaNota": "O campo Ementa está em branco no PPC; só há objetivos."
+   "ementaNota": "A ementa desta disciplina não está detalhada no projeto pedagógico do curso; só constam os objetivos."
   },
   "d-079": {
    "id": "d-079",
@@ -2316,10 +2314,32 @@ const PPC_DATA = {
      "trecho": "Protótipos e Técnicas de Design centrado no Usuário"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Criar a interface visual de sites com foco em usabilidade",
+    "Escrever e testar o layout, a navegação e as funções das páginas",
+    "Implementar interfaces responsivas e acessíveis com HTML, CSS e JavaScript",
+    "Alinhar o conteúdo e o visual com designers e equipes de desenvolvimento"
+   ],
+   "habilidades": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Design responsivo",
+    "Acessibilidade"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Frontend Developer Roadmap — roadmap.sh",
+     "url": "https://roadmap.sh/frontend",
+     "tipo": "Guia de carreira"
+    },
+    {
+     "rotulo": "Web Developers and Digital Designers — U.S. Bureau of Labor Statistics",
+     "url": "https://www.bls.gov/ooh/computer-and-information-technology/web-developers.htm",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-023",
@@ -2362,10 +2382,26 @@ const PPC_DATA = {
      "trecho": "Teste de softwares"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Elaborar planos de teste a partir dos requisitos do software",
+    "Executar testes para verificar a qualidade do sistema",
+    "Identificar e registrar defeitos encontrados",
+    "Comunicar problemas às equipes de desenvolvimento"
+   ],
+   "habilidades": [
+    "Atenção a detalhes",
+    "Análise",
+    "Comunicação",
+    "Resolução de problemas"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Software Developers — Occupational Outlook Handbook, U.S. Bureau of Labor Statistics",
+     "url": "https://www.bls.gov/ooh/computer-and-information-technology/software-developers.htm",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-103",
@@ -2463,7 +2499,6 @@ const PPC_DATA = {
      "trecho": "engenharia de requisitos: tipos de requisitos, métodos e técnicas para elicitação de requisitos de software"
     }
    ],
-   "notaInterna": "Citada no PPC mas ausente de todas as rotas do .md original; incluída.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Dimensionar requisitos e funcionalidades dos sistemas",
@@ -2518,10 +2553,26 @@ const PPC_DATA = {
      "trecho": "Responsabilidade e estruturas de decisão"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Levantar com a gestão como a tecnologia atende aos objetivos do negócio",
+    "Analisar custos e benefícios de mudanças em sistemas",
+    "Propor melhorias e novas funcionalidades para sistemas existentes",
+    "Testar sistemas e preparar manuais e treinamentos para usuários"
+   ],
+   "habilidades": [
+    "Análise",
+    "Visão de negócio",
+    "Comunicação",
+    "Organização"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Computer Systems Analysts — U.S. Bureau of Labor Statistics (ocupação equivalente)",
+     "url": "https://www.bls.gov/ooh/computer-and-information-technology/computer-systems-analysts.htm",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-036",
@@ -2750,7 +2801,6 @@ const PPC_DATA = {
      "trecho": "Estruturação de planos de negócios"
     }
    ],
-   "notaInterna": "O .md dizia 'Empreendedor'; o PPC diz 'Empresário'.",
    "baseInformacao": "ppc",
    "atividades": [],
    "habilidades": [],
@@ -2797,7 +2847,6 @@ const PPC_DATA = {
      "trecho": "Metodologia da consultoria"
     }
    ],
-   "notaInterna": "Cobre também 'Consultor de TI' e 'Consultor em SI' do .md.",
    "baseInformacao": "ppc",
    "atividades": [],
    "habilidades": [],
@@ -2943,7 +2992,6 @@ const PPC_DATA = {
    "descricaoFonte": "editorial",
    "ancora": "PPC §6.1 (texto: 'ingressar na carreira docente e/ou de pesquisa')",
    "evidencia": [],
-   "notaInterna": "Citada no texto do PPC §6.1 ('ingressar na carreira docente e/ou de pesquisa'), fora da lista de funções.",
    "baseInformacao": "ppc",
    "atividades": [],
    "habilidades": [],
@@ -2979,7 +3027,6 @@ const PPC_DATA = {
     }
    ],
    "varianteDe": "c-pesquisador",
-   "notaInterna": "Rótulo de 'Pesquisador' na rota de IA.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Conduzir pesquisa científica em computação",
@@ -3034,7 +3081,6 @@ const PPC_DATA = {
     }
    ],
    "varianteDe": "c-pesquisador",
-   "notaInterna": "Une 'Pesquisador em computação' e 'Pesquisa e pós-graduação em computação' do .md.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Conduzir pesquisa científica em computação",
@@ -3232,7 +3278,6 @@ const PPC_DATA = {
      "trecho": "Modelo relacional"
     }
    ],
-   "notaInterna": "Exemplo do enunciado; a mesma ementa (Programação WEB) cobre cliente e servidor.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Trabalhar no front-end e no back-end de uma aplicação",
@@ -3313,7 +3358,6 @@ const PPC_DATA = {
      "trecho": "Arquitetura de aplicações WEB"
     }
    ],
-   "notaInterna": "Sobrepõe front-end, back-end e full-stack. Decidir se mantém ou funde.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Desenvolver a interface gráfica e a navegação de sistemas web",
@@ -3371,10 +3415,26 @@ const PPC_DATA = {
      "trecho": "Desenvolvimento de um sistema para dispositivos móveis"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Desenvolver aplicativos para celulares, tablets e outros dispositivos",
+    "Construir interfaces adaptáveis a diferentes tamanhos de tela",
+    "Estruturar apps de forma modular, escalável e testável",
+    "Garantir desempenho, acessibilidade, segurança e privacidade do app"
+   ],
+   "habilidades": [
+    "Kotlin",
+    "Jetpack Compose",
+    "Arquitetura de apps",
+    "Testes"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Get started with Android development — Android Developers (Google) (cobre apenas Android)",
+     "url": "https://developer.android.com/get-started/overview",
+     "tipo": "Documentação oficial"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-039",
@@ -3417,7 +3477,6 @@ const PPC_DATA = {
      "trecho": "Desenvolvimento de software com arquiteturas complexas (com uso de REST API e GraphQL)"
     }
    ],
-   "notaInterna": "Novo (não estava no .md); só uma menção de ementa.",
    "baseInformacao": "ppc",
    "atividades": [],
    "habilidades": [],
@@ -3464,7 +3523,6 @@ const PPC_DATA = {
      "trecho": "Estudo e uso de ferramentas para práticas DevOps"
     }
    ],
-   "notaInterna": "No .md vinha junto com Cloud; Cloud foi separada e removida.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Simplificar o ciclo de vida do software unindo desenvolvimento e operações",
@@ -3531,11 +3589,28 @@ const PPC_DATA = {
      "trecho": "Técnicas de avaliação de sistemas interativos"
     }
    ],
-   "notaInterna": "Reclassificada: na v1 do plano era ponte.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Investigar necessidades e comportamentos dos usuários",
+    "Criar personas para representar públicos-alvo",
+    "Desenhar wireframes e protótipos interativos",
+    "Conduzir testes de usabilidade",
+    "Iterar o design com base nos resultados"
+   ],
+   "habilidades": [
+    "Pesquisa com usuários",
+    "Pensamento centrado no usuário",
+    "Resolução de problemas",
+    "Comunicação",
+    "Colaboração"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "What is User Experience (UX) Design? — Interaction Design Foundation",
+     "url": "https://ixdf.org/literature/topics/user-experience-design",
+     "tipo": "Entidade"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-026",
@@ -3576,10 +3651,27 @@ const PPC_DATA = {
      "trecho": "Protótipos e Técnicas de Design centrado no Usuário"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Definir layouts, cores e tipografia das interfaces",
+    "Projetar interfaces gráficas, de voz e de gestos",
+    "Produzir wireframes, mockups e protótipos",
+    "Garantir navegação intuitiva e comportamento consistente dos elementos"
+   ],
+   "habilidades": [
+    "Teoria das cores",
+    "Tipografia",
+    "Hierarquia visual",
+    "Ferramentas como Figma",
+    "Acessibilidade"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "User Interface (UI) Design — Interaction Design Foundation",
+     "url": "https://ixdf.org/literature/topics/ui-design",
+     "tipo": "Entidade"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-026",
@@ -3620,11 +3712,28 @@ const PPC_DATA = {
      "trecho": "Aplicações de processamento de imagens em sistemas"
     }
    ],
-   "notaInterna": "Depende de optativas.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Construir a interface visual de sites e aplicações",
+    "Implementar layouts responsivos",
+    "Garantir acessibilidade das páginas",
+    "Otimizar o desempenho web",
+    "Testar e depurar o código no navegador"
+   ],
+   "habilidades": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Git",
+    "Acessibilidade"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Frontend Developer Roadmap — roadmap.sh",
+     "url": "https://roadmap.sh/frontend",
+     "tipo": "Guia de carreira"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-070",
@@ -3667,10 +3776,27 @@ const PPC_DATA = {
      "trecho": "Implementação de aplicações usando um SGBDR"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Organizar e proteger sistemas de armazenamento de dados",
+    "Monitorar o desempenho e a disponibilidade dos bancos",
+    "Realizar backups e atualizar permissões de acesso",
+    "Corrigir erros do sistema",
+    "Projetar novos bancos a partir de requisitos técnicos"
+   ],
+   "habilidades": [
+    "Capacidade analítica",
+    "Atenção a detalhes",
+    "Resolução de problemas",
+    "Comunicação"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Database Administrators and Architects — U.S. Bureau of Labor Statistics",
+     "url": "https://www.bls.gov/ooh/computer-and-information-technology/database-administrators.htm",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-016",
@@ -3711,11 +3837,27 @@ const PPC_DATA = {
      "trecho": "Regras de Associação"
     }
    ],
-   "notaInterna": "Evidência está em optativas.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Projetar sistemas de coleta, armazenamento e análise de dados em escala",
+    "Construir pipelines ETL/ELT automatizados",
+    "Monitorar a qualidade dos dados e corrigir inconsistências",
+    "Manter a escalabilidade da infraestrutura de dados"
+   ],
+   "habilidades": [
+    "SQL",
+    "Python",
+    "Bancos relacionais e NoSQL",
+    "Computação em nuvem",
+    "Data warehouses e data lakes"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "What is data engineering? — IBM",
+     "url": "https://www.ibm.com/think/topics/data-engineering",
+     "tipo": "Referência técnica"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-063",
@@ -3766,7 +3908,6 @@ const PPC_DATA = {
      "trecho": "Sistemas de informação de suporte ao processo operacional, decisório tático e estratégico (SPT, SAD, SIG, EIS)"
     }
    ],
-   "notaInterna": "Parte da evidência está em optativa (Mineração de Dados).",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Transformar dados em informações para apoiar decisões",
@@ -3836,7 +3977,6 @@ const PPC_DATA = {
      "trecho": "Testes de Hipóteses"
     }
    ],
-   "notaInterna": "Cobertura parcial: o PPC não tem disciplina de ciência de dados.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Extrair conhecimento dos dados com programação, estatística e aprendizado de máquina",
@@ -3964,11 +4104,27 @@ const PPC_DATA = {
      "trecho": "Regras de Associação"
     }
    ],
-   "notaInterna": "Evidência em optativa.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Coletar dados de diversas fontes",
+    "Limpar e padronizar os dados",
+    "Analisar os dados para identificar padrões e tendências",
+    "Construir modelos preditivos de aprendizado de máquina",
+    "Comunicar as descobertas de forma clara"
+   ],
+   "habilidades": [
+    "Programação (Python ou R)",
+    "Estatística",
+    "Aprendizado de máquina",
+    "Pensamento crítico"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "AI and Data Scientist Roadmap — roadmap.sh",
+     "url": "https://roadmap.sh/ai-data-scientist",
+     "tipo": "Guia de carreira"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-068",
@@ -4009,11 +4165,27 @@ const PPC_DATA = {
      "trecho": "data warehouse"
     }
    ],
-   "notaInterna": "A sigla BI não aparece; a ementa trata de apoio à decisão.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Coletar dados de bancos e planilhas",
+    "Tratar inconsistências e erros nos dados",
+    "Aplicar técnicas estatísticas para achar padrões",
+    "Apresentar resultados em gráficos e relatórios"
+   ],
+   "habilidades": [
+    "Visualização de dados",
+    "Power BI",
+    "Excel",
+    "Estatística",
+    "Python ou R"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Data Analyst Roadmap — roadmap.sh",
+     "url": "https://roadmap.sh/data-analyst",
+     "tipo": "Guia de carreira"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-036",
@@ -4121,7 +4293,6 @@ const PPC_DATA = {
      "trecho": "Redes de Computadores (WAN, MAN, LAN e PAN)"
     }
    ],
-   "notaInterna": "Une 'Analista de infraestrutura/sistemas' e 'Administrador de sistemas / infraestrutura' do .md.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Instalar e configurar sistemas operacionais, conectividade e aplicativos",
@@ -4188,10 +4359,26 @@ const PPC_DATA = {
      "trecho": "Tolerância a Falhas"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Projetar a arquitetura de sistemas com vários componentes",
+    "Escolher bancos de dados, filas e caches adequados",
+    "Planejar balanceamento de carga para suportar crescimento",
+    "Definir logging e monitoramento do sistema"
+   ],
+   "habilidades": [
+    "Escalabilidade",
+    "Desempenho",
+    "Segurança",
+    "Padrões arquiteturais"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "System Design Roadmap — roadmap.sh",
+     "url": "https://roadmap.sh/system-design",
+     "tipo": "Guia de carreira"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-037",
@@ -4232,10 +4419,26 @@ const PPC_DATA = {
      "trecho": "Formato das instruções e linguagem de máquina"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Projetar e desenvolver sistemas operacionais e software de base",
+    "Analisar as necessidades dos usuários e da organização",
+    "Documentar o software para facilitar a manutenção",
+    "Testar e manter os programas em funcionamento"
+   ],
+   "habilidades": [
+    "Análise de requisitos",
+    "Resolução de problemas",
+    "Atenção a detalhes",
+    "Comunicação"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Software Developers — Occupational Outlook Handbook, U.S. Bureau of Labor Statistics",
+     "url": "https://www.bls.gov/ooh/computer-and-information-technology/software-developers.htm",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-030",
@@ -4272,7 +4475,6 @@ const PPC_DATA = {
      "trecho": "Motores de Jogos. Game Loop"
     }
    ],
-   "notaInterna": "Evidência em optativa.",
    "baseInformacao": "ppc",
    "atividades": [],
    "habilidades": [],
@@ -4319,7 +4521,6 @@ const PPC_DATA = {
      "trecho": "Noções sobre a Supervisão e Automação de Processos"
     }
    ],
-   "notaInterna": "A ementa é de eletricidade e CLP, não de programação; evidência em optativa.",
    "baseInformacao": "fonte-externa",
    "atividades": [
     "Codificar programas e especificar a arquitetura de sistemas",
@@ -4370,11 +4571,27 @@ const PPC_DATA = {
      "trecho": "Criação e desenvolvimento de programas de controle para robôs"
     }
    ],
-   "notaInterna": "Evidência em optativa.",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Programar o posicionamento e a operação de robôs em processos automatizados",
+    "Integrar robôs, controladores lógicos programáveis e demais sistemas de automação",
+    "Testar o funcionamento de componentes eletroeletrônicos e mecânicos instalados",
+    "Analisar falhas e executar manutenção de sistemas automatizados",
+    "Documentar alterações de projeto e planos de manutenção"
+   ],
+   "habilidades": [
+    "Programação de CLP",
+    "Automação",
+    "Integração de sistemas",
+    "Eletrônica"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "CBO 3001-10 Técnico em mecatrônica - robótica (ocupação mais próxima na CBO), via VRI Consulting",
+     "url": "https://www.vriconsulting.com.br/trabalhista/ocupacao.php?cbo=300110",
+     "tipo": "CBO"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-099",
@@ -4411,11 +4628,26 @@ const PPC_DATA = {
      "trecho": "cálculo de raízes de funções algébricas e transcendentes por métodos numéricos"
     }
    ],
-   "notaInterna": "Evidência em optativa (Cálculo Numérico).",
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Construir formalmente métodos numéricos para problemas científicos",
+    "Analisar matematicamente a precisão e a convergência dos métodos",
+    "Implementar algoritmos computacionais de métodos numéricos",
+    "Simular computacionalmente fenômenos complexos"
+   ],
+   "habilidades": [
+    "Métodos numéricos",
+    "Modelagem matemática",
+    "Programação",
+    "Elementos finitos"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Métodos Numéricos (linha de pesquisa) — LNCC, Ministério da Ciência, Tecnologia e Inovação",
+     "url": "https://lncc.br/linhasdepesquisa/metodosnumericos",
+     "tipo": "Órgão público"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-079",
@@ -4508,10 +4740,26 @@ const PPC_DATA = {
      "trecho": "Governança de TIC e objetivos estratégicos"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Definir controles e objetivos de gestão de TI alinhados às metas do negócio",
+    "Estabelecer linguagem comum entre TI, executivos e auditores",
+    "Documentar a conformidade com normas e regulamentos",
+    "Monitorar e melhorar as práticas de TI com base em um framework"
+   ],
+   "habilidades": [
+    "COBIT",
+    "Gestão de riscos",
+    "Conformidade",
+    "Auditoria de TI"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "COBIT (definição) — TechTarget, sobre o framework da ISACA",
+     "url": "https://www.techtarget.com/cybersecurity/definition/COBIT",
+     "tipo": "Referência técnica"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-019",
@@ -4552,10 +4800,27 @@ const PPC_DATA = {
      "trecho": "gerenciamento de processos"
     }
    ],
-   "baseInformacao": "ppc",
-   "atividades": [],
-   "habilidades": [],
-   "fontesInfo": [],
+   "baseInformacao": "fonte-externa",
+   "atividades": [
+    "Identificar e documentar os processos existentes da organização",
+    "Modelar processos com notações como BPMN",
+    "Analisar o processo atual para achar oportunidades de melhoria",
+    "Propor o processo futuro desejado",
+    "Definir e acompanhar indicadores de desempenho"
+   ],
+   "habilidades": [
+    "BPMN",
+    "Modelagem de processos",
+    "Pensamento crítico",
+    "Indicadores de desempenho"
+   ],
+   "fontesInfo": [
+    {
+     "rotulo": "Guia para Formação de Analistas de Processos — ABPMP Brasil (publicado pelo Governo de Goiás)",
+     "url": "https://goias.gov.br/saude/wp-content/uploads/sites/34/2017/08/livro-guia-para-formacao-de-analistas-de-processos-425.pdf",
+     "tipo": "Entidade"
+    }
+   ],
    "relacaoCurso": [
     {
      "disciplina": "d-019",
@@ -4640,36 +4905,25 @@ const PPC_DATA = {
  "cursosVizinhos": {
   "OBADM": {
    "nome": "Administração (IFMG Ouro Branco)",
-   "nota": "Bacharelado em Administração, oferecido no campus desde 2013, além do técnico em Administração (PPC §3.2)."
+   "nota": "Bacharelado em Administração, oferecido no campus desde 2013, além do técnico em Administração."
   },
   "OBLCOMP": {
    "nome": "Licenciatura em Computação (IFMG Ouro Branco)",
-   "nota": "Curso do campus desde 2012 (PPC §3.2)."
+   "nota": "Curso do campus desde 2012."
   },
   "OBLPED": {
    "nome": "Licenciatura em Pedagogia (IFMG Ouro Branco)",
-   "nota": "Curso do campus desde 2017 (PPC §3.2)."
+   "nota": "Curso do campus desde 2017."
   },
   "OBENGM": {
    "nome": "Engenharia Metalúrgica (IFMG Ouro Branco)",
-   "nota": "Bacharelado em Engenharia Metalúrgica, oferecido no campus desde 2013 (PPC §3.2)."
+   "nota": "Bacharelado em Engenharia Metalúrgica, oferecido no campus desde 2013."
   },
   "OBBGEMT": {
-   "nome": "Curso não identificado no PPC",
-   "nota": "O código OBBGEMT aparece só na tabela de equivalências de Álgebra Linear e não consta da legenda de cursos do PPC."
+   "nome": "Outro curso do campus",
+   "nota": "A disciplina Álgebra Linear I também é cursada em outro curso do campus, que o projeto pedagógico não nomeia."
   }
  },
- "descartadas": [
-  "Gestor de serviços de TI",
-  "Product owner",
-  "Gerente de produto",
-  "Consultor empresarial com foco em TI",
-  "Gestor de inovação",
-  "Cloud",
-  "Cibersegurança",
-  "Segurança da informação",
-  "alto desempenho"
- ],
  "esperado": {
   "porPrefixo": {
    "OBADM": 23,

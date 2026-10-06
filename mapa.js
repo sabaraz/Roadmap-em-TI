@@ -1,4 +1,4 @@
-/* mapa.js — Mapa Digital de Carreiras (BSI · IFMG Ouro Branco).
+/* mapa.js — mapa de carreiras de Sistemas de Informação.
    Script clássico, sem bibliotecas: funciona abrindo index.html direto (file://).
    Lê apenas a constante global PPC_DATA (ppc-data.js).
    Determinismo: nenhuma posição usa Math.random; as mesmas entradas geram o mesmo mapa. */
@@ -8,13 +8,56 @@
   const NS = 'http://www.w3.org/2000/svg';
   const REDUZ = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const EIXO_COR = {
-    'matematica': '#ff7ab6', 'computacional': '#ffa94d', 'ti': '#4cd38a',
-    'administrativa': '#4dabf7', 'profissional-social': '#b8c0cc', 'complementar': '#ffe066'
-  };
+  const FUNDO = '#0a0f24';
+  const COR_CENTRO = '#2de2c4';
   const COR_CARREIRA = '#ffe9a8';
+  const COR_COMPONENTE = '#9fb0d9';
+  /* Uma família de cor por eixo: base + matiz e saturação usados para gerar tons do claro ao escuro. */
+  const FAMILIAS = {
+    'matematica': { base: '#e63fb0', h: 322, s: 76 },
+    'computacional': { base: '#ff6a2b', h: 17, s: 100 },
+    'ti': { base: '#8b5cf6', h: 258, s: 90 },
+    'administrativa': { base: '#2f7bff', h: 217, s: 100 },
+    'profissional-social': { base: '#aab3c2', h: 215, s: 14 },
+    'complementar': { base: '#9be12f', h: 82, s: 73 }
+  };
+  const EIXO_COR = {}; Object.keys(FAMILIAS).forEach(k => EIXO_COR[k] = FAMILIAS[k].base);
   const LH = 14;               // altura de linha dos rótulos
   const R1 = 250, R2 = 580;    // raios dos anéis de eixos e agrupamentos
+
+  function hslHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return '#' + [f(0), f(8), f(4)].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+  }
+  function luminancia(hex) {
+    const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function contraste(a, b) { const x = luminancia(a), y = luminancia(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  /* tom do eixo: t = 0 (mais claro) ... 1 (mais escuro); nunca abaixo de 4,2:1 sobre o fundo */
+  function tom(eixo, t, desloc) {
+    const f = FAMILIAS[eixo], h = (f.h + (desloc || 0) + 360) % 360;
+    let l = 84 - 46 * clamp(t, 0, 1), hex = hslHex(h, f.s, l);
+    while (contraste(hex, FUNDO) < 4.2 && l < 90) { l += 1; hex = hslHex(h, f.s, l); }
+    return hex;
+  }
+  function claro(hex, p) {
+    const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+    return '#' + c.map(v => Math.round(v + (255 - v) * p).toString(16).padStart(2, '0')).join('');
+  }
+  /* contorno de flor: raio = R (1 + a cos(n·ângulo)) */
+  function flor(R, n, a) {
+    const N = n * 30; let d = '';
+    for (let i = 0; i < N; i++) {
+      const u = 2 * Math.PI * i / N, r = R * (1 + a * Math.cos(n * u)), q = u - Math.PI / 2;
+      d += (i ? 'L' : 'M') + (r * Math.cos(q)).toFixed(2) + ' ' + (r * Math.sin(q)).toFixed(2);
+    }
+    return d + 'Z';
+  }
+  function circuloPath(R) { return `M${R} 0A${R} ${R} 0 1 0 ${-R} 0A${R} ${R} 0 1 0 ${R} 0Z`; }
 
   /* ---------- utilitários ---------- */
   function append(e, kids) {
@@ -66,6 +109,11 @@
       this.carreirasDeDisc = {};
       Object.values(data.carreiras).forEach(c => (c.relacaoCurso || []).forEach(r =>
         (this.carreirasDeDisc[r.disciplina] = this.carreirasDeDisc[r.disciplina] || []).push({ carreira: c.id, rel: r })));
+      this.tomGrupo = {};
+      data.eixos.forEach(e => {
+        const gs = this.gruposDoEixo[e.id];
+        gs.forEach((g, i) => { this.tomGrupo[g.id] = tom(e.id, gs.length > 1 ? i / (gs.length - 1) : 0.45, i % 2 ? 8 : -8); });
+      });
       this.discDoCurso = {};
       Object.values(data.disciplinas).forEach(d => d.compartilhadaCom.forEach(e =>
         (this.discDoCurso[e.prefixo] = this.discDoCurso[e.prefixo] || []).push({ ref: d.id, equivalente: e.equivalente })));
@@ -74,7 +122,10 @@
       const gs = this.gruposDeDisc[ref] || [];
       return gs.find(gid => this.grupos[gid].disciplinas.some(d => d.ref === ref && d.papel === 'home')) || gs[0];
     }
-    corDisc(d) { return EIXO_COR[d.eixoPpc] || '#9fb0d9'; }
+    tomDisc(gid, j, m) {
+      const e = this.grupos[gid].eixo;
+      return tom(e, m > 1 ? j / (m - 1) : 0.45, j % 2 ? 8 : -8);
+    }
     entidade(ref) {
       return this.D.disciplinas[ref] || this.D.carreiras[ref] || this.D.componentes[ref] || null;
     }
@@ -101,18 +152,18 @@
       });
       // rótulos dos nós fixos
       this.rot = {};
-      this.rot.root = { lines: wrap(map.D.curso.rotulo, 15) };
+      this.rot.root = { lines: wrap(map.D.curso.rotulo, 17) };
       map.eixos.forEach(e => {
         const p = this.pos[e.id];
-        this.rot[e.id] = this.rotulo(-Math.cos(p.a), -Math.sin(p.a), 34, wrap(e.rotulo, 16), 7.4);
+        this.rot[e.id] = this.rotulo(-Math.cos(p.a), -Math.sin(p.a), 40, wrap(e.rotulo, 16), 7.4);
       });
       gs.forEach(g => {
         const p = this.pos[g.id];
         this.rot[g.id] = this.rotulo(Math.cos(p.a), Math.sin(p.a), 24, wrap(g.rotulo, 20), 6.4);
       });
       // retângulos ocupados pelos nós fixos
-      this.base.push({ x0: -80, y0: -80, x1: 80, y1: 80 });
-      map.eixos.forEach(e => this.base.push(this.caixa(e.id, 28)));
+      this.base.push({ x0: -86, y0: -86, x1: 86, y1: 86 });
+      map.eixos.forEach(e => this.base.push(this.caixa(e.id, 36)));
       gs.forEach(g => { const q = this.pos[g.id]; this.base.push({ gid: g.id, x0: q.x - 20, y0: q.y - 20, x1: q.x + 20, y1: q.y + 20 }); });
     }
     rotulo(vx, vy, d, lines, cw) {
@@ -135,30 +186,28 @@
     layoutGroup(gid) {
       if (this.cache[gid]) return this.cache[gid];
       const map = this.map, g = map.grupos[gid], G = this.pos[gid];
-      const ocupados = this.base.filter(b => b.gid !== gid); ocupados.push(this.caixa(gid, 18));
-      const itens = { disc: [], carr: [] };
+      const ocupados = this.base.filter(b => b.gid !== gid); ocupados.push(this.caixa(gid, 26));
+      const itens = { disc: [], carr: [], sol: [] };
       g.disciplinas.forEach(d => itens.disc.push({ tipo: 'disciplina', ref: d.ref, papel: d.papel }));
       (g.componentes || []).forEach(c => itens.disc.push({ tipo: 'componente', ref: c }));
       g.carreiras.forEach(c => itens.carr.push({ tipo: 'carreira', ref: c }));
-      g.resultados.forEach(r => itens.carr.push({ tipo: 'resultado', ref: r.id, resultado: r }));
+      g.resultados.forEach(r => itens.sol.push({ tipo: 'estrela', ref: r.id }));
       const nos = [];
-      const lados = [['disc', -42], ['carr', 42]];
+      const lados = [['disc', -42], ['carr', 42], ['sol', 0]];
       lados.forEach(([lado, off]) => {
-        const lista = itens[lado], n = lista.length;
+        const lista = itens[lado], n = lista.length, sol = lado === 'sol';
         const centro = G.a + rad(off);
-        const passo = n > 1 ? Math.min(rad(26), rad(96) / (n - 1)) : 0;
+        const passo = n > 1 ? (sol ? rad(9) : Math.min(rad(26), rad(96) / (n - 1))) : 0;
         lista.forEach((it, i) => {
           const a = centro + (i - (n - 1) / 2) * passo;
           const vx = Math.cos(a), vy = Math.sin(a);
-          const rotulo = it.tipo === 'resultado' ? it.resultado.rotulo
-            : (map.entidade(it.ref) || {}).rotulo;
-          const lines = wrap(rotulo, 26);
+          const lines = sol ? [] : wrap((map.entidade(it.ref) || {}).rotulo, 26);
           let escolhido = null;
           for (let k = 0; k < 14; k++) {
-            const r = (n > 6 ? 175 : 150) + k * 40;
+            const r = (sol ? 250 : n > 6 ? 175 : 150) + k * 40, mt = sol ? 5 : 15;
             const x = G.x + r * vx, y = G.y + r * vy;
-            const lab = this.rotulo(vx, vy, 18, lines, 6.7);
-            const cx = { x0: x - 15, y0: y - 15, x1: x + 15, y1: y + 15 };
+            const lab = sol ? { lines: [], anchor: 'middle', x: 0, top: 0, box: { x0: 0, y0: 0, x1: 0, y1: 0 } } : this.rotulo(vx, vy, 18, lines, 6.7);
+            const cx = { x0: x - mt, y0: y - mt, x1: x + mt, y1: y + mt };
             const lb = { x0: x + lab.box.x0, y0: y + lab.box.y0, x1: x + lab.box.x1, y1: y + lab.box.y1 };
             const caixa = { x0: Math.min(cx.x0, lb.x0), y0: Math.min(cx.y0, lb.y0), x1: Math.max(cx.x1, lb.x1), y1: Math.max(cx.y1, lb.y1) };
             escolhido = { x, y, lab, caixa };
@@ -169,7 +218,7 @@
             lab: escolhido.lab, lines, caixa: escolhido.caixa }, it));
         });
       });
-      const gc = this.caixa(gid, 18);
+      const gc = this.caixa(gid, 26);
       const bbox = nos.reduce((b, n) => ({
         x0: Math.min(b.x0, n.caixa.x0), y0: Math.min(b.y0, n.caixa.y0),
         x1: Math.max(b.x1, n.caixa.x1), y1: Math.max(b.y1, n.caixa.y1)
@@ -177,6 +226,16 @@
       return (this.cache[gid] = { nos, bbox });
     }
   }
+
+  /* ---------- ícones dos eixos (grade 24 × 24, traço simples) ---------- */
+  const ICONES = {
+    'matematica': () => [s('path', { d: 'M5 7h14M9.5 7v10M15 7v7.5c0 1.6.9 2.5 2.5 2.5' })],
+    'computacional': () => [s('rect', { x: 7, y: 7, width: 10, height: 10, rx: 1.5 }), s('path', { d: 'M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4' })],
+    'ti': () => [s('path', { d: 'M12 4l8 4-8 4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4' })],
+    'administrativa': () => [s('path', { d: 'M5 20v-5M11 20v-8M17 20v-11M4 9l5-4 3.5 3L19 3M15.5 3H19v3.5' })],
+    'profissional-social': () => [s('circle', { cx: 9, cy: 8, r: 3 }), s('path', { d: 'M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6' }), s('circle', { cx: 17, cy: 9.5, r: 2.4 }), s('path', { d: 'M16.4 14.2c2.7.2 4.6 2.3 4.6 5.3' })],
+    'complementar': () => [s('path', { d: 'M5 8h4.2a2.3 2.3 0 1 1 4.6 0H18v4.2a2.3 2.3 0 1 1 0 4.6V20H5v-4.2a2.3 2.3 0 1 0 0-4.6z' })]
+  };
 
   /* ---------- MapRenderer: desenha e atualiza elementos SVG ---------- */
   class MapRenderer {
@@ -186,21 +245,41 @@
       this.camadaArestas = s('g', { class: 'arestas' });
       this.camadaNos = s('g', { class: 'nos' });
       this.mundo.append(this.camadaArestas, this.camadaNos);
-      svg.append(this.mundo);
-      this.nos = new Map(); this.arestas = new Map();
+      this.defs = s('defs');
+      svg.append(this.defs, this.mundo);
+      this.nos = new Map(); this.arestas = new Map(); this.gradientes = new Map();
+      this.formas = { curso: flor(62, 12, 0.06), eixo: flor(26, 10, 0.09), agrupamento: flor(15, 8, 0.12), disciplina: circuloPath(7.5) };
+      Object.keys(this.formas).forEach(k => this.defs.append(s('clipPath', { id: 'rec-' + k }, s('path', { d: this.formas[k] }))));
+      this.defs.append(s('linearGradient', { id: 'grad-faixa', x1: 0, y1: 0, x2: 1, y2: 0 },
+        s('stop', { offset: 0, 'stop-color': '#fff', 'stop-opacity': 0 }),
+        s('stop', { offset: 0.5, 'stop-color': '#fff', 'stop-opacity': 0.6 }),
+        s('stop', { offset: 1, 'stop-color': '#fff', 'stop-opacity': 0 })));
+    }
+    /* efeito de luz: pulso e faixa recortados pelo contorno da própria bolha (visíveis só quando selecionada) */
+    luz(n) {
+      const R = { curso: 70, eixo: 32, agrupamento: 20, disciplina: 12 }[n.tipo];
+      if (!R) return null;
+      return s('g', { class: 'luz', 'clip-path': 'url(#rec-' + n.tipo + ')' },
+        s('rect', { class: 'pulso', x: -R, y: -R, width: 2 * R, height: 2 * R, fill: n.corLuz || '#fff' }),
+        s('rect', { class: 'faixa', x: -R * 0.45, y: -R, width: R * 0.9, height: 2 * R, fill: 'url(#grad-faixa)' }));
+    }
+    icone(n) {
+      if (n.tipo !== 'eixo' || !ICONES[n.ref]) return null;
+      return s('g', { class: 'icone', transform: 'scale(1.19) translate(-12 -12)', fill: 'none', stroke: FUNDO, 'stroke-width': 2.3,
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, ...ICONES[n.ref]());
     }
     forma(n) {
       const t = n.tipo;
       if (t === 'curso') return [
-        s('circle', { class: 'brilho', r: 84, fill: 'rgba(255,233,168,.10)' }),
-        s('circle', { class: 'forma', r: 62, fill: '#26327a', stroke: '#ffe9a8', 'stroke-width': 2.5 })];
-      if (t === 'eixo') return [s('circle', { class: 'forma', r: 24, fill: n.cor, stroke: 'rgba(255,255,255,.55)', 'stroke-width': 2 })];
+        s('circle', { class: 'brilho', r: 84, fill: 'rgba(45,226,196,.10)' }),
+        s('path', { class: 'forma', d: this.formas.curso, fill: '#05070d', stroke: COR_CENTRO, 'stroke-width': 2.5 })];
+      if (t === 'eixo') return [s('path', { class: 'forma', d: this.formas.eixo, fill: n.cor, stroke: 'rgba(255,255,255,.55)', 'stroke-width': 2 })];
       if (t === 'agrupamento') return [
-        s('circle', { class: 'forma', r: 14, fill: '#0a0f24', stroke: n.cor, 'stroke-width': 3 }),
+        s('path', { class: 'forma', d: this.formas.agrupamento, fill: FUNDO, stroke: n.cor, 'stroke-width': 3 }),
         s('circle', { r: 4.5, fill: n.cor })];
       if (t === 'disciplina') {
         const sol = n.natureza === 'obrigatoria';
-        const out = [s('circle', { class: 'forma', r: 7.5, fill: sol ? n.cor : '#0a0f24', stroke: n.cor, 'stroke-width': 2.2 })];
+        const out = [s('circle', { class: 'forma', r: 7.5, fill: sol ? n.cor : FUNDO, stroke: n.cor, 'stroke-width': 2.2 })];
         if (n.papel === 'relacionada') out.push(s('circle', { r: 12, fill: 'none', stroke: n.cor, 'stroke-width': 1.2, 'stroke-dasharray': '2.5 2.5' }));
         return out;
       }
@@ -217,14 +296,21 @@
       }
       return [s('path', { class: 'forma', d: 'M0 -9L9 0L0 9L-9 0Z' })];   // resultado / componente
     }
-    raioAnel(n) { return { curso: 70, eixo: 31, agrupamento: 22, disciplina: 15, carreira: 20 }[n.tipo] || 15; }
+    raioAnel(n) { return { curso: 76, eixo: 35, agrupamento: 25, disciplina: 15, carreira: 20 }[n.tipo] || 15; }
     criar(n) {
+      if (n.tipo === 'estrela') {
+        const e = s('g', { class: 'no estrela', transform: `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`, 'aria-hidden': 'true', 'data-id': n.id },
+          s('g', { class: 'corpo' }, s('circle', { r: 2.4, fill: COR_COMPONENTE, opacity: 0.55 })));
+        return e;
+      }
       const g = s('g', { class: 'no ' + n.tipo + ' entrando', transform: `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`,
         tabindex: 0, role: 'button', 'data-id': n.id, 'aria-label': n.aria });
       if (n.expansivel) g.setAttribute('aria-expanded', 'false');
       const corpo = s('g', { class: 'corpo' });
       corpo.append(s('circle', { class: 'alvo', r: Math.max(16, this.raioAnel(n) - 4), fill: 'transparent' }));
       corpo.append(...this.forma(n));
+      const luz = this.luz(n); if (luz) corpo.append(luz);
+      const ic = this.icone(n); if (ic) corpo.append(ic);
       corpo.append(s('circle', { class: 'anel', r: this.raioAnel(n) }));
       if (n.tipo === 'curso') {
         const t = s('text', { class: 'rotulo', 'text-anchor': 'middle' });
@@ -252,11 +338,19 @@
     sync(nos, arestas) {
       const idsN = new Set(nos.map(n => n.id)), idsA = new Set(arestas.map(a => a.id));
       for (const [id, el] of this.nos) if (!idsN.has(id)) { el.remove(); this.nos.delete(id); }
-      for (const [id, el] of this.arestas) if (!idsA.has(id)) { el.remove(); this.arestas.delete(id); }
+      for (const [id, el] of this.arestas) if (!idsA.has(id)) {
+        el.remove(); this.arestas.delete(id);
+        const gr = this.gradientes.get(id); if (gr) { gr.remove(); this.gradientes.delete(id); }
+      }
       arestas.forEach(a => {
         let el = this.arestas.get(a.id);
         if (!el) {
+          const gid = 'gr-' + a.id.replace(/[^a-zA-Z0-9]/g, '_');
+          const gr = s('linearGradient', { id: gid, gradientUnits: 'userSpaceOnUse', x1: a.x1.toFixed(1), y1: a.y1.toFixed(1), x2: a.x2.toFixed(1), y2: a.y2.toFixed(1) },
+            s('stop', { offset: 0, 'stop-color': a.c1 }), s('stop', { offset: 1, 'stop-color': a.c2 }));
+          this.defs.append(gr); this.gradientes.set(a.id, gr);
           el = s('line', { class: 'aresta', x1: a.x1.toFixed(1), y1: a.y1.toFixed(1), x2: a.x2.toFixed(1), y2: a.y2.toFixed(1) });
+          el.style.stroke = 'url(#' + gid + ')';
           this.camadaArestas.append(el); this.arestas.set(a.id, el);
         }
         el.setAttribute('class', 'aresta' + (a.cls ? ' ' + a.cls : ''));
@@ -292,7 +386,7 @@
       let corpo = [];
       const f = this['c_' + c.tipo];
       if (f) corpo = f.call(this, c);
-      el.append(fechar, ...corpo, h('p', { class: 'aviso-cartao' }, D.meta.aviso));
+      el.append(fechar, ...corpo);
       el.scrollTop = 0; el.hidden = false;
     }
     c_curso() {
@@ -303,19 +397,19 @@
           this.etq(m.cargaOptativas + ' h optativas'), this.etq(m.cargaComponentes + ' h de componentes')),
         ...this.sec('Seis eixos de formação', this.lista(D.eixos.map(e =>
           h('span', null, h('i', { style: 'display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:' + EIXO_COR[e.id] }), this.link(e.rotulo + ' · ' + e.percentualCarga + '%', () => this.ctl.abrirEixo(e.id)))))),
-        h('p', null, 'Percentuais conforme a Figura 2 do PPC.')];
+        h('p', null, 'Percentuais sobre a carga horária total do curso.')];
     }
     c_eixo(c) {
       const e = this.map.eixoPorId[c.ref];
       return [h('div', { class: 'tipo' }, 'Eixo de formação'), h('h2', null, e.rotulo), h('p', null, e.descricao),
-        h('div', { class: 'etiquetas' }, this.etq(e.percentualCarga + '% da carga (PPC, Figura 2)', '', EIXO_COR[e.id])),
+        h('div', { class: 'etiquetas' }, this.etq(e.percentualCarga + '% da carga horária total', '', EIXO_COR[e.id])),
         ...this.sec('Agrupamentos deste eixo', this.lista(this.map.gruposDoEixo[e.id].map(g =>
           this.link(g.rotulo, () => this.ctl.abrirGrupo(g.id)))))];
     }
     c_agrupamento(c) {
       const g = this.map.grupos[c.ref], D_ = D.disciplinas;
-      const out = [h('div', { class: 'tipo' }, 'Agrupamento · ' + this.nomeEixo(g.eixo)), h('h2', null, g.rotulo), h('p', null, g.descricao),
-        h('p', { class: 'aviso-cartao', style: 'border:0;margin:0;padding:0' }, 'Agrupamento organizado para o mapa a partir do PPC (descrição editorial).')];
+      const out = [h('div', { class: 'tipo' }, 'Agrupamento · eixo ' + this.nomeEixo(g.eixo)), h('h2', null, g.rotulo), h('p', null, g.descricao),
+        h('p', { class: 'aviso-cartao', style: 'border:0;margin:0;padding:0' }, 'Agrupamento organizado para este mapa a partir das disciplinas do curso (descrição editorial).')];
       if (g.disciplinas.length) out.push(...this.sec('Disciplinas', this.lista(g.disciplinas.map(x => {
         const d = D_[x.ref];
         return h('span', null, this.link(d.rotulo, () => this.ctl.abrirNa(g.id, x.ref, 'disciplina')),
@@ -324,8 +418,6 @@
       }))));
       if (g.carreiras.length) out.push(...this.sec('Carreiras possíveis', this.lista(g.carreiras.map(cid =>
         this.link(D.carreiras[cid].rotulo, () => this.ctl.abrirNa(g.id, cid, 'carreira'))))));
-      if (g.resultados.length) out.push(...this.sec('O que isso entrega', this.lista(g.resultados.map(r =>
-        h('span', null, h('strong', null, r.rotulo), h('span', { class: 'porque', style: 'margin-left:0' }, r.descricao))))));
       if (g.componentes) out.push(...this.sec('Componentes curriculares', this.lista(g.componentes.map(k =>
         this.link(D.componentes[k].rotulo + ' · ' + D.componentes[k].cargaHoraria + ' h', () => this.ctl.abrirNa(g.id, k, 'componente'))))));
       return out;
@@ -343,7 +435,7 @@
     }
     c_disciplina(c) {
       const d = D.disciplinas[c.ref], m = this.map;
-      const out = [h('div', { class: 'tipo' }, 'Disciplina · ' + this.nomeEixo(d.eixoPpc)), h('h2', null, d.rotulo),
+      const out = [h('div', { class: 'tipo' }, 'Disciplina · eixo ' + this.nomeEixo(d.eixoPpc)), h('h2', null, d.rotulo),
         h('div', { class: 'etiquetas' },
           this.etq(d.natureza === 'optativa' ? 'Optativa' : 'Obrigatória', '', EIXO_COR[d.eixoPpc]),
           this.etq(d.periodo ? d.periodo + 'º período' : 'Do 5º ao 8º período'),
@@ -353,7 +445,7 @@
             onkeydown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); this.ctl.mostrarCurso(e.prefixo, d.id); } } },
             'também cursada em ' + e.curso)))];
       out.push(...this.sec('Quando é cursada', this.linhaTempo(d)));
-      if (d.codigo) out.push(h('p', null, h('small', null, 'Código no PPC: ' + d.codigo)));
+      if (d.codigo) out.push(h('p', null, h('small', null, 'Código da disciplina: ' + d.codigo)));
       const rel = m.carreirasDeDisc[d.id] || [];
       if (rel.length) out.push(...this.sec('Carreiras que usam esta disciplina', h('ul', null,
         rel.slice().sort((a, b) => (a.rel.forca !== 'principal') - (b.rel.forca !== 'principal')).map(r => {
@@ -363,15 +455,15 @@
         }))));
       const gs = m.gruposDeDisc[d.id] || [];
       if (gs.length) out.push(...this.rotasDe(gs, d.id, 'disciplina'));
-      if (d.ementa) out.push(h('details', null, h('summary', null, 'Ementa (PPC)'), h('p', null, d.ementa)));
+      if (d.ementa) out.push(h('details', null, h('summary', null, 'Ementa'), h('p', null, d.ementa)));
       else if (d.ementaNota) out.push(h('p', null, h('small', null, d.ementaNota)));
       return out;
     }
     c_carreira(c) {
       const car = D.carreiras[c.ref], m = this.map;
-      const status = car.ppcStatus === 'citado' ? this.etq('Citada no PPC', 'citada')
+      const status = car.ppcStatus === 'citado' ? this.etq('Citada no projeto do curso', 'citada')
         : car.ppcStatus === 'variante' ? this.etq('Variante de função citada', 'citada')
-          : this.etq(car.cobertura === 'parcial' ? 'Derivada das ementas · cobertura parcial' : 'Derivada das ementas', car.cobertura === 'parcial' ? 'parcial' : '');
+          : this.etq(car.cobertura === 'parcial' ? 'Deduzida das ementas · cobertura parcial' : 'Deduzida das ementas', car.cobertura === 'parcial' ? 'parcial' : '');
       const out = [h('div', { class: 'tipo' }, 'Carreira'), h('h2', null, car.rotulo), h('div', { class: 'etiquetas' }, status),
         h('p', null, car.descricao)];
       if (car.atividades.length) out.push(...this.sec('O que a profissão faz', this.lista(car.atividades)));
@@ -383,18 +475,14 @@
             this.link(d.rotulo, () => this.ctl.revelarDisciplina(d.id)),
             h('small', null, d.natureza === 'optativa' ? ' (optativa)' : ' (' + d.periodo + 'º per.)'),
             h('span', { class: 'porque' }, r.porque), r.trecho ? h('span', { class: 'trecho' }, '“' + r.trecho + '”') : null);
-        })), h('p', null, h('small', null, 'P = principal, A = apoio. O trecho é literal da ementa no PPC.'))));
+        })), h('p', null, h('small', null, 'P = principal, A = apoio. O trecho é literal da ementa da disciplina.'))));
       const gs = m.gruposDeCarreira[car.id] || [];
       if (gs.length) out.push(...this.rotasDe(gs, car.id, 'carreira'));
       if (car.fontesInfo.length) out.push(h('details', null, h('summary', null, 'Fontes das informações da profissão'),
         h('ul', null, car.fontesInfo.map(f => h('li', null, h('a', { href: f.url, target: '_blank', rel: 'noopener noreferrer' }, f.rotulo)))),
-        h('p', null, 'Textos parafraseados; a relação com as disciplinas vem do PPC.')));
-      else out.push(h('p', null, h('small', null, 'Sem fonte externa: esta carreira se apoia apenas nas ementas do PPC.')));
+        h('p', null, 'Textos parafraseados das fontes; a relação com as disciplinas vem das ementas do curso.')));
+      else out.push(h('p', null, h('small', null, 'Sem fonte externa: esta carreira se apoia apenas nas ementas das disciplinas do curso.')));
       return out;
-    }
-    c_resultado(c) {
-      const g = this.map.grupos[c.gid]; const r = g.resultados.find(x => x.id === c.ref);
-      return [h('div', { class: 'tipo' }, 'Resultado · ' + g.rotulo), h('h2', null, r.rotulo), h('p', null, r.descricao)];
     }
     c_componente(c) {
       const k = D.componentes[c.ref];
@@ -444,7 +532,8 @@
     aplicar() {
       const c = this.centro(), k = this.cam.k;
       this.rend.mundo.setAttribute('transform', `translate(${(c.cx - this.cam.x * k).toFixed(2)} ${(c.cy - this.cam.y * k).toFixed(2)}) scale(${k.toFixed(4)})`);
-      if (this.gEstrelas) this.gEstrelas.setAttribute('transform', `translate(${(-this.cam.x * 0.03).toFixed(1)} ${(-this.cam.y * 0.03).toFixed(1)})`);
+      (this.camadasFundo || []).forEach(c => c.g.setAttribute('transform',
+        `translate(${clamp(-this.cam.x * c.f, -c.lim, c.lim).toFixed(1)} ${clamp(-this.cam.y * c.f, -c.lim, c.lim).toFixed(1)})`));
     }
     ir(x, y, k, ms) {
       if (this.anim) cancelAnimationFrame(this.anim);
@@ -475,35 +564,38 @@
       this.cam = { k: k1, x: px - (sx - c.cx) / k1, y: py - (sy - c.cy) / k1 };
       this.aplicar();
     }
-    caixaNo(id) { return this.layout.caixa(id, id === 'root' ? 80 : this.map.eixoPorId[id] ? 28 : 18); }
+    caixaNo(id) { return this.layout.caixa(id, id === 'root' ? 86 : this.map.eixoPorId[id] ? 36 : 26); }
 
     /* --- visibilidade e classes --- */
     noInfo(tipo, base) { return base; }
     nosVisiveis() {
       const st = this.st, L = this.layout, m = this.map, nos = [], ar = [];
       const root = { id: 'root', tipo: 'curso', ref: 'curso-bsi', x: 0, y: 0, lab: L.rot.root, expansivel: true, aberto: st.raiz,
+        cor: COR_CENTRO, corLuz: claro(COR_CENTRO, 0.35),
         aria: D.curso.rotulo + ' — ' + (st.raiz ? 'aberto' : 'clique para abrir') };
       nos.push(root);
       if (st.raiz) m.eixos.forEach(e => {
         const p = L.pos[e.id];
-        nos.push({ id: e.id, tipo: 'eixo', ref: e.id, x: p.x, y: p.y, lab: L.rot[e.id], cor: EIXO_COR[e.id], expansivel: true,
+        nos.push({ id: e.id, tipo: 'eixo', ref: e.id, x: p.x, y: p.y, lab: L.rot[e.id], cor: EIXO_COR[e.id], corLuz: claro(EIXO_COR[e.id], 0.55), expansivel: true,
           aberto: st.eixos.has(e.id), aria: 'Eixo ' + e.rotulo });
-        ar.push({ id: 'root>' + e.id, a: 'root', b: e.id, x1: 0, y1: 0, x2: p.x, y2: p.y });
+        ar.push({ id: 'root>' + e.id, a: 'root', b: e.id, x1: 0, y1: 0, x2: p.x, y2: p.y, c1: COR_CENTRO, c2: EIXO_COR[e.id] });
         if (st.eixos.has(e.id)) m.gruposDoEixo[e.id].forEach(g => {
           const q = L.pos[g.id];
-          nos.push({ id: g.id, tipo: 'agrupamento', ref: g.id, gid: g.id, x: q.x, y: q.y, lab: L.rot[g.id], cor: EIXO_COR[e.id], expansivel: true,
+          nos.push({ id: g.id, tipo: 'agrupamento', ref: g.id, gid: g.id, x: q.x, y: q.y, lab: L.rot[g.id], cor: m.tomGrupo[g.id], corLuz: claro(m.tomGrupo[g.id], 0.5), expansivel: true,
             aberto: st.grupo === g.id, aria: 'Agrupamento ' + g.rotulo });
-          ar.push({ id: e.id + '>' + g.id, a: e.id, b: g.id, x1: p.x, y1: p.y, x2: q.x, y2: q.y });
+          ar.push({ id: e.id + '>' + g.id, a: e.id, b: g.id, x1: p.x, y1: p.y, x2: q.x, y2: q.y, c1: EIXO_COR[e.id], c2: m.tomGrupo[g.id] });
+          const nd = g.disciplinas.length; let jd = 0;
           if (st.grupo === g.id) L.layoutGroup(g.id).nos.forEach(n => {
-            const nn = Object.assign({}, n);
+            const nn = Object.assign({}, n); let c2 = COR_COMPONENTE;
+            if (n.tipo === 'estrela') { nos.push(nn); return; }
             if (n.tipo === 'disciplina') {
-              const d = D.disciplinas[n.ref]; nn.natureza = d.natureza; nn.cor = m.corDisc(d);
+              const d = D.disciplinas[n.ref]; nn.natureza = d.natureza; nn.cor = m.tomDisc(g.id, jd++, nd); nn.corLuz = claro(nn.cor, 0.5); c2 = nn.cor;
               nn.aria = 'Disciplina ' + d.rotulo + (d.natureza === 'optativa' ? ', optativa' : ', ' + d.periodo + 'º período');
             } else if (n.tipo === 'carreira') {
-              const c = D.carreiras[n.ref]; nn.ppcStatus = c.ppcStatus; nn.cobertura = c.cobertura; nn.aria = 'Carreira ' + c.rotulo;
-            } else nn.aria = (n.tipo === 'componente' ? 'Componente ' : 'Resultado ') + n.lines.join(' ');
+              const c = D.carreiras[n.ref]; nn.ppcStatus = c.ppcStatus; nn.cobertura = c.cobertura; nn.aria = 'Carreira ' + c.rotulo; c2 = COR_CARREIRA;
+            } else nn.aria = 'Componente ' + n.lines.join(' ');
             nos.push(nn);
-            ar.push({ id: g.id + '>' + n.id, a: g.id, b: n.id, x1: q.x, y1: q.y, x2: n.x, y2: n.y });
+            ar.push({ id: g.id + '>' + n.id, a: g.id, b: n.id, x1: q.x, y1: q.y, x2: n.x, y2: n.y, c1: m.tomGrupo[g.id], c2 });
           });
         });
       });
@@ -587,8 +679,8 @@
     enquadrarTrilha() {
       const t = this.st.trilha; if (!t) return;
       this.abrirEixosDaTrilha(); this.render();
-      const r = [...t.grupos].map(g => this.layout.caixa(g, 18));
-      t.eixos.forEach(e => r.push(this.layout.caixa(e, 28)));
+      const r = [...t.grupos].map(g => this.layout.caixa(g, 26));
+      t.eixos.forEach(e => r.push(this.layout.caixa(e, 36)));
       if (this.st.grupo && t.grupos.has(this.st.grupo)) r.push(this.layout.layoutGroup(this.st.grupo).bbox);
       this.enquadrar(r, 0.3, 1.1);
     }
@@ -598,6 +690,8 @@
     setCartao(c) {
       const antes = this.centro(); this.st.cartao = c;
       if (c) this.card.mostrar(c); else document.getElementById('cartao').hidden = true;
+      const bl = document.getElementById('btn-legenda'), cx = document.getElementById('legenda');
+      bl.hidden = !!c; if (c) { cx.hidden = true; bl.setAttribute('aria-expanded', 'false'); }
       const depois = this.centro();
       this.cam.x += (depois.cx - antes.cx) / this.cam.k; this.cam.y += (depois.cy - antes.cy) / this.cam.k;
       this.aplicar(); this.chip();
@@ -617,7 +711,7 @@
     }
     cliqueRaiz() {
       const st = this.st;
-      if (!st.raiz) { st.raiz = true; st.sel = 'root'; this.setCartao({ tipo: 'curso' }); this.render(); this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 28)), 0.5, 1.1); }
+      if (!st.raiz) { st.raiz = true; st.sel = 'root'; this.setCartao({ tipo: 'curso' }); this.render(); this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 36)), 0.5, 1.1); }
       else if (st.sel !== 'root') { st.sel = 'root'; this.setCartao({ tipo: 'curso' }); this.render(); }
       else this.inicio();
     }
@@ -625,13 +719,13 @@
       const st = this.st; st.raiz = true;
       if (!st.eixos.has(id) || forcar) {
         st.eixos.add(id); st.sel = id; this.setCartao({ tipo: 'eixo', ref: id }); this.render();
-        const r = this.map.gruposDoEixo[id].map(g => this.layout.caixa(g.id, 18)); r.push(this.layout.caixa(id, 28));
+        const r = this.map.gruposDoEixo[id].map(g => this.layout.caixa(g.id, 26)); r.push(this.layout.caixa(id, 36));
         this.enquadrar(r, 0.45, 1.1);
       } else if (st.sel !== id) { st.sel = id; this.setCartao({ tipo: 'eixo', ref: id }); this.render(); }
       else {
         st.eixos.delete(id); if (st.grupo && this.map.grupos[st.grupo].eixo === id) st.grupo = null;
         st.sel = null; this.setCartao(null); this.render();
-        this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 28)), 0.5, 1.1);
+        this.enquadrar(D.eixos.map(e => this.layout.caixa(e.id, 36)), 0.5, 1.1);
       }
     }
     abrirGrupo(gid, forcar) {
@@ -729,8 +823,23 @@
         } else if (e.key === 'Home' && !dig) { e.preventDefault(); this.inicio(); }
       });
       document.getElementById('btn-inicio').addEventListener('click', () => this.inicio());
-      document.getElementById('zoom-mais').addEventListener('click', () => this.zoomEm(1.25));
-      document.getElementById('zoom-menos').addEventListener('click', () => this.zoomEm(0.8));
+      const ligarZoom = (id, passo) => {
+        const b = document.getElementById(id); let tm = null, laco = null, seguro = false, ult = 0;
+        const parar = () => { clearTimeout(tm); if (laco) cancelAnimationFrame(laco); laco = null; };
+        const rodar = tt => {
+          const dt = Math.min(50, tt - ult); ult = tt;
+          this.zoomEm(Math.pow(passo, dt / 140)); laco = requestAnimationFrame(rodar);
+        };
+        b.addEventListener('pointerdown', () => {
+          seguro = false; parar();
+          if (this.anim) { cancelAnimationFrame(this.anim); this.anim = null; }
+          tm = setTimeout(() => { seguro = true; ult = performance.now(); laco = requestAnimationFrame(rodar); }, 250);
+        });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, parar));
+        b.addEventListener('contextmenu', e => e.preventDefault());
+        b.addEventListener('click', () => { if (seguro) { seguro = false; return; } this.zoomEm(passo); });
+      };
+      ligarZoom('zoom-mais', 1.25); ligarZoom('zoom-menos', 0.8);
       addEventListener('resize', () => { this.estrelas(); this.aplicar(); });
     }
 
@@ -744,16 +853,19 @@
       };
       const item = (i, t) => h('div', { class: 'item' }, i, h('span', null, t));
       box.append(h('h3', null, 'Como ler o mapa'),
-        item(ico(s('circle', { r: 11, fill: '#4cd38a' })), 'Disciplina obrigatória (a cor é o eixo do PPC)'),
-        item(ico(s('circle', { r: 9, fill: 'none', stroke: '#4cd38a', 'stroke-width': 2.2 })), 'Disciplina optativa'),
-        item(ico(s('circle', { r: 7, fill: '#4cd38a' }), s('circle', { r: 12, fill: 'none', stroke: '#4cd38a', 'stroke-dasharray': '2.5 2.5' })), 'Aparece aqui como apoio (casa em outra rota)'),
-        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: COR_CARREIRA, 'stroke-width': 1.6 }))), 'Carreira citada no PPC'),
-        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: '#ffa94d', 'stroke-dasharray': '3 3' }))), 'Carreira derivada, cobertura parcial'),
-        item(ico(...estrela()), 'Carreira derivada das ementas'),
+        item(ico(s('circle', { r: 11, fill: '#8b5cf6' })), 'Disciplina obrigatória (tons da cor do eixo)'),
+        item(ico(s('circle', { r: 9, fill: 'none', stroke: '#8b5cf6', 'stroke-width': 2.2 })), 'Disciplina optativa'),
+        item(ico(s('circle', { r: 7, fill: '#8b5cf6' }), s('circle', { r: 12, fill: 'none', stroke: '#8b5cf6', 'stroke-dasharray': '2.5 2.5' })), 'Aparece aqui como apoio (casa em outra rota)'),
+        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: COR_CARREIRA, 'stroke-width': 1.6 }))), 'Carreira citada no projeto do curso'),
+        item(ico(...estrela(s('circle', { r: 15, fill: 'none', stroke: '#ffa94d', 'stroke-dasharray': '3 3' }))), 'Carreira deduzida, cobertura parcial'),
+        item(ico(...estrela()), 'Carreira deduzida das ementas'),
         h('p', null, 'Clique num círculo para abrir. Ao clicar numa carreira, todas as rotas que levam a ela se acendem; o número amarelo conta as disciplinas relacionadas.'),
         h('div', { class: 'cores' }, D.eixos.map(e => h('span', null, h('i', { style: 'background:' + EIXO_COR[e.id] }), e.rotulo))));
       btn.addEventListener('click', () => {
         box.hidden = !box.hidden; btn.setAttribute('aria-expanded', String(!box.hidden));
+      });
+      document.addEventListener('pointerdown', e => {
+        if (!box.hidden && !box.contains(e.target) && !btn.contains(e.target)) { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
       });
     }
 
@@ -773,7 +885,7 @@
       Object.values(D.carreiras).forEach(c => { if (this.map.gruposDeCarreira[c.id]) idx.push({ t: c.rotulo, k: 'Carreira', n: norm(c.rotulo), f: () => this.revelarCarreira(c.id) }); });
       Object.values(D.disciplinas).forEach(d => { if (this.map.gruposDeDisc[d.id]) idx.push({ t: d.rotulo, k: 'Disciplina', n: norm(d.rotulo + ' ' + (d.codigo || '')), f: () => this.revelarDisciplina(d.id) }); });
       D.agrupamentos.forEach(g => idx.push({ t: g.rotulo, k: 'Agrupamento', n: norm(g.rotulo), f: () => this.abrirGrupo(g.id, true) }));
-      D.eixos.forEach(e => idx.push({ t: e.rotulo, k: 'Eixo', n: norm(e.rotulo), f: () => this.abrirEixo(e.id, true) }));
+      D.eixos.forEach(e => idx.push({ t: e.rotulo, k: 'Eixo', n: norm('formação eixo ' + e.rotulo), f: () => this.abrirEixo(e.id, true) }));
       let atual = [], sel = -1;
       const fechar = () => { lista.hidden = true; inp.setAttribute('aria-expanded', 'false'); sel = -1; inp.removeAttribute('aria-activedescendant'); };
       const marcar = () => {
@@ -803,26 +915,48 @@
       inp.addEventListener('blur', () => setTimeout(fechar, 120));
     }
 
-    /* --- fundo de estrelas (semente fixa) --- */
+    /* --- fundo: nebulosas, círculo zodiacal e três camadas de estrelas (semente fixa) --- */
     estrelas() {
       const svg = this.ui.estrelas, W = innerWidth, H = innerHeight; svg.replaceChildren();
       svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
       let seed = 20200;
       const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
-      const g = s('g'); this.gEstrelas = g;
-      const n = Math.round(W * H / 9000);
-      for (let i = 0; i < n; i++) {
-        const x = -40 + rnd() * (W + 80), y = -40 + rnd() * (H + 80), r = 0.4 + rnd() * 1.1, o = 0.25 + rnd() * 0.55;
-        g.append(s('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), fill: '#cfd8ff', opacity: o.toFixed(2) }));
+      const grad = (id, cor) => s('radialGradient', { id },
+        s('stop', { offset: 0, 'stop-color': cor, 'stop-opacity': 0.26 }), s('stop', { offset: 1, 'stop-color': cor, 'stop-opacity': 0 }));
+      svg.append(s('defs', null, grad('neb1', '#6d3fd6'), grad('neb2', '#1f8fb0'), grad('neb3', '#b0348f')));
+      this.camadasFundo = [];
+      const camada = f => { const g = s('g'); svg.append(g); this.camadasFundo.push({ g, f, lim: 40 + f * 900 }); return g; };
+      const m = Math.max(W, H);
+      const neb = camada(0.015);
+      [['neb1', 0.2, 0.3, 0.55], ['neb2', 0.82, 0.72, 0.5], ['neb3', 0.6, 0.08, 0.38]].forEach(([id, x, y, r]) =>
+        neb.append(s('circle', { cx: (x * W).toFixed(0), cy: (y * H).toFixed(0), r: (r * m).toFixed(0), fill: 'url(#' + id + ')' })));
+      const zod = camada(0.04), R = 0.42 * Math.min(W, H), cx = W / 2, cy = H / 2 + 8;
+      zod.append(s('circle', { cx, cy, r: R, fill: 'none', stroke: 'rgba(190,170,255,.16)', 'stroke-width': 1 }),
+        s('circle', { cx, cy, r: R * 0.86, fill: 'none', stroke: 'rgba(190,170,255,.10)', 'stroke-width': 1 }));
+      const pts = [];
+      for (let i = 0; i < 12; i++) {
+        const a = rad(i * 30 - 90), c = Math.cos(a), sn = Math.sin(a);
+        zod.append(s('line', { x1: (cx + c * R * 0.86).toFixed(1), y1: (cy + sn * R * 0.86).toFixed(1), x2: (cx + c * R).toFixed(1), y2: (cy + sn * R).toFixed(1), stroke: 'rgba(190,170,255,.16)', 'stroke-width': 1 }));
+        const rr = R * (0.93 + (rnd() - 0.5) * 0.04), b = rad(i * 30 - 75);
+        pts.push([cx + Math.cos(b) * rr, cy + Math.sin(b) * rr]);
       }
-      svg.append(g);
+      zod.append(s('polyline', { points: pts.concat([pts[0]]).map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '), fill: 'none', stroke: 'rgba(190,170,255,.12)', 'stroke-width': 1, 'stroke-dasharray': '2 5' }));
+      pts.forEach(p => zod.append(s('circle', { cx: p[0].toFixed(1), cy: p[1].toFixed(1), r: 2.2, fill: '#d9ccff', opacity: 0.55 })));
+      const total = Math.round(W * H / 8000);
+      [[0.02, 0.55, 0.4, 0.9, 0.25, 0.6], [0.05, 0.3, 0.7, 1.2, 0.35, 0.75], [0.1, 0.15, 1.0, 1.8, 0.5, 0.9]].forEach(([f, frac, r0, r1, o0, o1]) => {
+        const g = camada(f), n = Math.round(total * frac);
+        for (let i = 0; i < n; i++) {
+          const x = -160 + rnd() * (W + 320), y = -160 + rnd() * (H + 320), r = r0 + rnd() * (r1 - r0), o = o0 + rnd() * (o1 - o0);
+          g.append(s('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), fill: rnd() < 0.18 ? '#ffe9c4' : '#cfd8ff', opacity: o.toFixed(2) }));
+        }
+      });
     }
   }
 
   const ctl = new MapController();
   window.MapaBSI = {
     ctl, map: ctl.map, layout: ctl.layout, estado: ctl.st,
-    posicoes() {   // usado nos testes de determinismo
+    posicoes() {   // posições calculadas, para conferir o layout
       const o = {}; D.agrupamentos.forEach(g => {
         const r = ctl.layout.layoutGroup(g.id); o[g.id] = r.nos.map(n => [n.id, +n.x.toFixed(2), +n.y.toFixed(2)]);
       });

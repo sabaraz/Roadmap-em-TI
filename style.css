@@ -23,9 +23,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--fundo-
 .so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- mapa ---------- */
-.aresta { stroke: var(--linha); stroke-width: 1.2; fill: none; transition: stroke .25s, opacity .25s, stroke-width .25s; }
-.aresta.trilha { stroke: var(--linha-forte); stroke-width: 2.4; opacity: 1; }
-.aresta.apagado { opacity: .25; }
+.aresta { stroke-width: 1.7; fill: none; opacity: .6; transition: opacity .25s, stroke-width .25s; }
+.aresta.trilha { stroke-width: 3.2; opacity: 1; filter: drop-shadow(0 0 3px rgba(255, 233, 168, .75)); }
+.aresta.apagado { opacity: .14; }
 
 .no { cursor: pointer; outline: none; }
 .no .corpo { transition: opacity .25s; }
@@ -43,12 +43,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--fundo-
 
 .rotulo { fill: var(--texto); font-size: 12px; paint-order: stroke; stroke: var(--fundo-1); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
 .no.eixo .rotulo { font-size: 13.5px; font-weight: 600; }
-.no.disciplina .rotulo, .no.carreira .rotulo, .no.resultado .rotulo, .no.componente .rotulo { font-size: 12.5px; }
-.no.curso .rotulo { font-size: 13px; font-weight: 700; text-anchor: middle; stroke: none; fill: #fff; }
+.no.disciplina .rotulo, .no.carreira .rotulo, .no.componente .rotulo { font-size: 12.5px; }
+.no.curso .rotulo { font-size: 13px; font-weight: 700; text-anchor: middle; stroke: none; fill: #2de2c4; }
 .no.relacionada .forma { opacity: .8; }
 .no.carreira .forma { fill: #ffe9a8; }
 .no.carreira .rotulo { fill: #fff6d6; }
-.no.resultado .forma, .no.componente .forma { fill: #9fb0d9; }
+.no.componente .forma { fill: #9fb0d9; }
+.no.estrela { pointer-events: none; cursor: default; }
 .brilho { pointer-events: none; }
 
 /* ---------- interface ---------- */
@@ -139,17 +140,36 @@ button { font: inherit; color: var(--texto); }
 #cartao summary { cursor: pointer; font-size: 13px; color: #cfe0ff; }
 #cartao details p { font-size: 12.5px; color: var(--texto-suave); }
 #cartao a { color: #cfe0ff; font-size: 12.5px; word-break: break-all; }
-.aviso-cartao { font-size: 11.5px; color: var(--texto-suave); border-top: 1px solid var(--painel-borda); margin-top: 14px; padding-top: 10px; }
+.aviso-cartao { font-size: 11.5px; color: var(--texto-suave); }
 .botao { background: transparent; border: 1px solid var(--painel-borda); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 12.5px; margin-top: 8px; }
 .botao:hover { border-color: var(--destaque); }
 
+#aviso .curto { display: none; }
 @media (max-width: 760px) {
   #titulo span { display: none; }
   #cartao { top: auto; left: 8px; right: 8px; bottom: 58px; width: auto; max-width: none; max-height: 52vh; }
-  #aviso { display: none; }
+  #aviso { bottom: 22px; font-size: 11px; max-width: 40vw; }
+  #aviso .longo { display: none; }
+  #aviso .curto { display: inline; }
+  .no.eixo .icone * { stroke-width: 2.9; }
   #busca { width: 200px; }
 }
+/* efeito de luz da bolha selecionada, recortado pelo contorno da própria bolha */
+.no .luz { display: none; pointer-events: none; }
+.no.selecionado .luz { display: inline; }
+.luz .pulso { opacity: .08; animation: pulso-bolha 1.8s ease-in-out infinite; }
+.luz .faixa { transform-box: fill-box; animation: varrer-bolha 2.4s linear infinite; }
+@keyframes pulso-bolha { 0%, 100% { opacity: .08; } 50% { opacity: .62; } }
+@keyframes varrer-bolha { from { transform: translateX(-160%); } to { transform: translateX(260%); } }
+.no .icone { opacity: 0; transition: opacity .3s; pointer-events: none; }
+.no.eixo.selecionado .icone { opacity: 1; }
+#btn-legenda[hidden] { display: none; }
+#zoom button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+
 @media (prefers-reduced-motion: reduce) {
+  .luz .pulso, .luz .faixa { animation: none; }
+  .no.selecionado .luz .pulso { opacity: .35; }
+  .luz .faixa { display: none; }
   .no.entrando .corpo, #dica { animation: none; }
   .aresta, .no .corpo, .no .forma, .no .anel { transition: none; }
 }
